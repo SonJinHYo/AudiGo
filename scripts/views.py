@@ -25,3 +25,9 @@ class Scripts(APIView):
             serializer.data,
             status=status.HTTP_200_OK,
         )
+
+
+# class UploadAudio(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self,)

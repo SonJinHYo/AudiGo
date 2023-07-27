@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 
 # Create your models here.
 
@@ -9,7 +10,11 @@ class Audio(models.Model):
         on_delete=models.CASCADE,
         related_name="audios",
     )
-    data_url = models.URLField()
+    file = models.FileField(
+        validators=FileExtensionValidator(
+            allowed_extensions=["mp3", "mp4", "wav", "flac", "amr", "ogg", "webm"],
+        )
+    )
     title = models.CharField(max_length=50)
     origin_script = models.TextField()
     modified_script = models.TextField()
