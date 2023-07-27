@@ -5,7 +5,6 @@
   - `/` | 유저 정보 |
   - `/login` | 로그인 |
   - `/logout` | 로그아웃 |
-  - `/user/scripts` | 유저가 가진 스크립트 |
 - Script_app(`/scripts`)
   - `/` | 유저가 가진 스크립트 표시 |
   - `/upload` | 오디오 업로드 페이지 |
