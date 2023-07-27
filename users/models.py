@@ -6,7 +6,11 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     username = models.CharField(
         max_length=30,
-        default="",
+        unique=True,
     )
-    created_at = models.DateTimeField()
-    using_gpt_roken = models.PositiveIntegerField()
+    created_at = models.DateTimeField(
+        null=True,
+    )
+    using_gpt_roken = models.PositiveIntegerField(
+        default=0,
+    )

@@ -5,11 +5,12 @@ from django.db import models
 
 class Audio(models.Model):
     user = models.ForeignKey(
-        "User",
+        "users.User",
         on_delete=models.CASCADE,
+        related_name="audios",
     )
     data_url = models.URLField()
-    title = models.CharField()
+    title = models.CharField(max_length=50)
     origin_script = models.TextField()
     modified_script = models.TextField()
     create_at = models.DateTimeField()
@@ -17,11 +18,12 @@ class Audio(models.Model):
 
 class Charecter(models.Model):
     script = models.ForeignKey(
-        "Audios",
+        "scripts.Audio",
         on_delete=models.CASCADE,
+        related_name="charecters",
     )
     start_time = models.FloatField()
     end_time = models.FloatField()
     confidence = models.FloatField()
-    content = models.CharField()
-    type = models.CharField()
+    content = models.CharField(max_length=150)
+    type = models.CharField(max_length=20)
