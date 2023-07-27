@@ -11,9 +11,12 @@ class Audio(models.Model):
         related_name="audios",
     )
     file = models.FileField(
-        validators=FileExtensionValidator(
-            allowed_extensions=["mp3", "mp4", "wav", "flac", "amr", "ogg", "webm"],
-        )
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["mp3", "mp4", "wav", "flac", "amr", "ogg", "webm"],
+            )
+        ],
+        null=True,
     )
     title = models.CharField(max_length=50)
     origin_script = models.TextField()
