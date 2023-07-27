@@ -11,6 +11,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(
         null=True,
     )
-    using_gpt_roken = models.PositiveIntegerField(
+    using_gpt_token = models.PositiveIntegerField(
+        default=0,
+    )
+    rem_gpt_token = models.PositiveIntegerField(
         default=0,
     )

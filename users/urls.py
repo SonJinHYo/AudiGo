@@ -1,3 +1,6 @@
-from django.urls import path, include
+from django.urls import path
+from . import views
 
-urlpatterns = []
+urlpatterns = [
+    path("", views.Me.as_view()),
+]
