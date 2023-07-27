@@ -9,3 +9,14 @@ class TinyAudioSerializer(ModelSerializer):
             "title",
             "create_at",
         )
+
+
+class DetailAudioSerializer(ModelSerializer):
+    class Meta:
+        model = Audio
+        fields = (
+            "title",
+            "origin_script",
+            "modified_script",
+            "create_at",
+        )
