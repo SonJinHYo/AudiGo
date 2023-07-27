@@ -6,8 +6,7 @@
   - `/login` | 로그인 | [ ]
   - `/logout` | 로그아웃 | [ ]
 - Script_app(`/scripts`)
-  - `/` | 유저가 가진 스크립트 표시 |
-  - `/detail` |스크립트 자세히|
+  - `/<int:pk>` |스크립트 자세히|
   - `/upload` | 오디오 업로드 페이지 |
     - s3에 저장 후 원본 스크립트 생성. 이후 `/make_script` 이동
   - `/choose_script` | 수정할 스크립트 선택 |
