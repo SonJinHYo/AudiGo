@@ -38,8 +38,9 @@ class Scripts(APIView):
         )
 
 
+# 내일 django 정적 파일 저장소 설정부터 시작하기
 class UploadAudio(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     env = environ.Env()
     environ.Env.read_env(os.path.join(settings.BASE_DIR, ".env"))
@@ -61,15 +62,15 @@ class UploadAudio(APIView):
         # 이후 오디오 파일 크기 제한 걸기
         user = request.user
         audio_file = request.FILES.get("audio_file")
-        title = request.data["title"]
+        # title = request.data["title"]
         bucket = self.env("BUCKET")
         key = f"{str(uuid.uuid4())}__{audio_file}"
         job_name = bucket + key
 
         self.s3.upload_file(
-            Filename=title,
-            bucket=bucket,
-            key=key,
+            Filename="test",
+            Bucket=bucket,
+            Key=key,
         )
 
         def get_script(job_name: str) -> tuple(str, dict):
@@ -235,16 +236,27 @@ class UploadAudio(APIView):
             completion = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": "Hello!"},
+                    {
+                        "role": "system",
+                        "content": "Your role only organizes the input. And only answer in Korean",
+                    },
+                    {"role": "user", "content": script_text},
                 ],
             )
-            pass
+            return completion
+
+        origin_script, items = get_script(job_name=job_name)
+        modified_script = get_gpt_script(script_text=origin_script)
+
+        data = {
+            "origin_script": origin_script,
+            "modified_script": modified_script,
+            "charecters": items,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
 
         """
-        
-        
-        
         1. 오디오 파일 어플리케이션 컨테이너에 전송
             - 앱 컨테이너 (aws transcript, chatGPT)
         2. 데이터 전송
