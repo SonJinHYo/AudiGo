@@ -15,7 +15,6 @@ from django.conf import settings
 
 import boto3
 import time
-import uuid
 import requests
 import json
 import openai
@@ -77,7 +76,10 @@ class UploadAudio(APIView):
         }
         """
 
-        return completion["choices"][0]["message"]["content"]
+        return (
+            completion["choices"][0]["message"]["content"],
+            completion["usage"]["completion_tokens"],
+        )
 
     env = environ.Env()
     environ.Env.read_env(os.path.join(settings.BASE_DIR, ".env"))
@@ -281,7 +283,11 @@ class UploadAudio(APIView):
         time.sleep(3)
 
         origin_script, charecters = wait_for_transcription(job_name=job_name)
-        modified_script = self.get_gpt_script(script_text=origin_script)
+        modified_script, using_token = self.get_gpt_script(script_text=origin_script)
+
+        # 사용한 토큰 저장
+        user.using_gpt_token += using_token
+        user.save()
 
         audio.origin_script = origin_script
         audio.modified_script = modified_script
@@ -294,6 +300,7 @@ class UploadAudio(APIView):
 
         if serializer.is_valid():
             new_audio = serializer.save()
+
             """Response data syntex
             {
                 "origin_script": "결과 또한 빠르게 나오게 됩니다. 최종적으로 세이브것들을 통해서 저희가 이미지를 조정할 수 있게 됩니다.",
@@ -449,7 +456,14 @@ class UploadAudio(APIView):
                 new_origin_script += " "
             new_origin_script += charecter["alternatives"][0]["content"]
 
-        new_modified_script = self.get_gpt_script(new_origin_script)
+        new_modified_script, using_token = self.get_gpt_script(new_origin_script)
+
+        # 사용한 토큰 저장
+        # user = User.objects.get(username=request.user)
+        user = User.objects.get(username="admin")
+        user.using_gpt_token += using_token
+        user.save()
+
         serializer = serializers.AudioSerializer(
             # Audio.objects.get(user=request.user),
             Audio.objects.get(pk=request.data["pk"]),
