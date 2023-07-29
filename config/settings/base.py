@@ -44,7 +44,10 @@ CUSTOM_APPS = [
     "scripts.apps.ScriptsConfig",
 ]
 
-THIRD_PARTY_APPS = ["rest_framework"]
+THIRD_PARTY_APPS = [
+    "rest_framework",
+    "storages",
+]
 
 INSTALLED_APPS = SYSTEM_APPS + CUSTOM_APPS + THIRD_PARTY_APPS
 
@@ -109,11 +112,19 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Storages
+STORAGES = {
+    "default": {"BACKEND": "config.storages.MediaStorage"},
+    "staticfiles": {"BACKEND": "config.storages.StaticStorage"},
+}
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+AWS_STATIC_LOCATION = env("AWS_STATIC_LOCATION")
 
-STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -19,9 +19,12 @@ class Audio(models.Model):
         null=True,
     )
     title = models.CharField(max_length=50)
-    origin_script = models.TextField()
-    modified_script = models.TextField()
-    create_at = models.DateTimeField()
+    origin_script = models.TextField(
+        null=True,
+    )
+    modified_script = models.TextField(
+        null=True,
+    )
 
 
 class Charecter(models.Model):
