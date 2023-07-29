@@ -7,6 +7,7 @@ from rest_framework import exceptions
 
 from . import serializers
 from .models import Audio
+from users.models import User
 
 import environ
 import os
@@ -41,6 +42,42 @@ class Scripts(APIView):
 # 내일 django 정적 파일 저장소 설정부터 시작하기
 class UploadAudio(APIView):
     # permission_classes = [IsAuthenticated]
+    def get_gpt_script(self, script_text: str) -> list:
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Your role only organizes the input. And only answer in Korean",
+                },
+                {"role": "user", "content": script_text},
+            ],
+        )
+        """ cimpletion syntax
+        {
+        "id": "chatcmpl-7hWY4zomRdwCgFdt53y7F6Wt6FjnS",
+        "object": "chat.completion",
+        "created": 1690607576,
+        "model": "gpt-3.5-turbo-0613",
+        "choices": [
+            {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "Hello! How can I assist you today?"
+            },
+            "finish_reason": "stop"
+            }
+        ],
+        "usage": {
+            "prompt_tokens": 19,
+            "completion_tokens": 9,
+            "total_tokens": 28
+        }
+        }
+        """
+
+        return completion["choices"][0]["message"]["content"]
 
     env = environ.Env()
     environ.Env.read_env(os.path.join(settings.BASE_DIR, ".env"))
@@ -59,7 +96,7 @@ class UploadAudio(APIView):
     openai.api_key = env("TEST_KEY")
 
     def post(self, request):
-        def wait_for_transcription(job_name: str) -> tuple(str, dict):
+        def wait_for_transcription(job_name: str):
             # transcript 작업 완료 대기
             max_tries = 60
             while max_tries > 0:
@@ -214,58 +251,166 @@ class UploadAudio(APIView):
                 "status": "COMPLETED",
             }
             """
-            script_text = script_data["results"]["transcripts"]
+            script_text = script_data["results"]["transcripts"][0]["transcript"]
             script_items = script_data["results"]["items"]
-            return script_text, script_items
+            return (script_text, script_items)
 
-        def get_gpt_script(script_text: str) -> str:
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "Your role only organizes the input. And only answer in Korean",
-                    },
-                    {"role": "user", "content": script_text},
-                ],
-            )
-            return completion
-
-        user = request.user
-        file = request.FILES.get("file")
+        # user = User.objects.get(username=request.user)
+        user = User.objects.get(username="admin")
+        file = request.data.get("file")
         title = request.data["title"]
 
         serializer = serializers.AudioFirstSaveSerializer(
-            user=user,
-            file=file,
-            title=title,
+            data={
+                "user": user.pk,
+                "file": file,
+                "title": title,
+            },
         )
+
         if serializer.is_valid():
             audio = serializer.save()
         else:
             return Response(
-                serializer.error,
+                serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        bucket = self.env("BUCKET")
-        key = f"{str(uuid.uuid4())}__{file}"
-        job_name = bucket + key
-
-        self.s3.upload_file(
-            Filename=audio.file.url(),
-            Bucket=bucket,
-            Key=key,
-        )
+        job_name = audio.file.name
+        print("wait 3 second...")
+        time.sleep(3)
 
         origin_script, charecters = wait_for_transcription(job_name=job_name)
-        modified_script = get_gpt_script(script_text=origin_script)
+        modified_script = self.get_gpt_script(script_text=origin_script)
 
         audio.origin_script = origin_script
         audio.modified_script = modified_script
 
-        if audio.full_clean():
-            audio.save()
+        serializer = serializers.AudioSerializer(
+            audio,
+            data={"origin_script": origin_script, "modified_script": modified_script},
+            partial=True,
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            """Response data syntex
+            {
+                "origin_script": "결과 또한 빠르게 나오게 됩니다. 최종적으로 세이브것들을 통해서 저희가 이미지를 조정할 수 있게 됩니다.",
+                "modified_script": "이미지 조정을 위해 세이브한 결과는 빠르게 나오게 됩니다. 세이브한 것들을 통해 우리는 이미지를 최종적으로 조정할 수 있습니다.",
+                "charecters": [
+                    {
+                        "start_time": "0.0",
+                        "end_time": "0.37",
+                        "alternatives": [
+                            {
+                                "confidence": "0.5994",
+                                "content": "결과"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    {
+                        "start_time": "0.37",
+                        "end_time": "0.68",
+                        "alternatives": [
+                            {
+                                "confidence": "1.0",
+                                "content": "또한"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    {
+                        "start_time": "0.85",
+                        "end_time": "1.19",
+                        "alternatives": [
+                            {
+                                "confidence": "1.0",
+                                "content": "빠르게"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    {
+                        "start_time": "1.19",
+                        "end_time": "1.41",
+                        "alternatives": [
+                            {
+                                "confidence": "0.9979",
+                                "content": "나오게"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    {
+                        "start_time": "1.41",
+                        "end_time": "1.71",
+                        "alternatives": [
+                            {
+                                "confidence": "0.9814",
+                                "content": "됩니다"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    {
+                        "alternatives": [
+                            {
+                                "confidence": "0.0",
+                                "content": "."
+                            }
+                        ],
+                        "type": "punctuation"
+                    },
+                    {
+                        "start_time": "3.42",
+                        "end_time": "4.03",
+                        "alternatives": [
+                            {
+                                "confidence": "0.9999",
+                                "content": "최종적으로"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    .
+                    .
+                    .
+                    {
+                        "start_time": "6.35",
+                        "end_time": "6.53",
+                        "alternatives": [
+                            {
+                                "confidence": "0.9935",
+                                "content": "있게"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    {
+                        "start_time": "6.53",
+                        "end_time": "6.9",
+                        "alternatives": [
+                            {
+                                "confidence": "0.9996",
+                                "content": "됩니다"
+                            }
+                        ],
+                        "type": "pronunciation"
+                    },
+                    {
+                        "alternatives": [
+                            {
+                                "confidence": "0.0",
+                                "content": "."
+                            }
+                        ],
+                        "type": "punctuation"
+                    }
+                ]
+            }
+            """
             return Response(
                 {
                     "origin_script": origin_script,
@@ -276,10 +421,29 @@ class UploadAudio(APIView):
             )
         else:
             return Response(
-                "스크립트 생성에 실패했습니다.", status=status.HTTP_417_EXPECTATION_FAILED
+                serializer.errors,
+                status=status.HTTP_417_EXPECTATION_FAILED,
             )
 
-    def put(self, request, pk):
+    def put(self, request):
+        modified_charecters = request.data["charecters"]
+        new_origin_script = ""
+        for charecter in modified_charecters:
+            """charecters syntex
+            {
+                "start_time": "0.0",
+                "end_time": "0.37",
+                "alternatives": [
+                    {
+                        "confidence": "0.5994",
+                        "content": "결과"
+                        }
+                    ],
+                "type": "pronunciation"
+            }
+            """
+            charecter
+
         """
         1. 수정된 원본 스크립트 받기
         2. GPT에게 답 받기

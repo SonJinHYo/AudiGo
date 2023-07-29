@@ -13,7 +13,7 @@ class StaticStorage(S3Boto3Storage):
     location = "static"
 
 
-# # 미디어 파일용
-# class MediaStorage(S3Boto3Storage):
-#     location = "audio"
-#     default_acl = "public-read"
+# 미디어 파일용
+class MediaStorage(S3Boto3Storage):
+    location = "audio"
+    default_acl = "public-read"

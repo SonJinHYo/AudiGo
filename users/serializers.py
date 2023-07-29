@@ -22,9 +22,3 @@ class UserSerializer(ModelSerializer):
             Audio.objects.filter(user=user),
             many=True,
         ).data
-
-
-class UsernameSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("useranme",)

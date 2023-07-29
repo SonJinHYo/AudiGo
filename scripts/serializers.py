@@ -1,6 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from .models import Audio, Charecter
-from users.serializers import UsernameSerializer
+from .models import Audio
 
 
 class TinyAudioSerializer(ModelSerializer):
@@ -26,4 +25,16 @@ class AudioFirstSaveSerializer(ModelSerializer):
             "user",
             "file",
             "title",
+        )
+
+
+class AudioSerializer(ModelSerializer):
+    class Meta:
+        model = Audio
+        fields = (
+            "user",
+            "file",
+            "title",
+            "origin_script",
+            "modified_script",
         )

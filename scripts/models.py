@@ -1,7 +1,13 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 
+import uuid
+
 # Create your models here.
+
+
+def custom_upload_to(instance, filename):
+    return f"{str(uuid.uuid4())}__{filename}"
 
 
 class Audio(models.Model):
@@ -17,15 +23,16 @@ class Audio(models.Model):
             )
         ],
         null=True,
+        upload_to=custom_upload_to,
     )
     title = models.CharField(
         max_length=50,
     )
     origin_script = models.TextField(
-        null=True,
+        default="",
     )
     modified_script = models.TextField(
-        null=True,
+        default="",
     )
 
 
