@@ -293,7 +293,7 @@ class UploadAudio(APIView):
         )
 
         if serializer.is_valid():
-            serializer.save()
+            new_audio = serializer.save()
             """Response data syntex
             {
                 "origin_script": "결과 또한 빠르게 나오게 됩니다. 최종적으로 세이브것들을 통해서 저희가 이미지를 조정할 수 있게 됩니다.",
@@ -416,6 +416,7 @@ class UploadAudio(APIView):
                     "origin_script": origin_script,
                     "modified_script": modified_script,
                     "charecters": charecters,
+                    "pk": new_audio.pk,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -428,6 +429,8 @@ class UploadAudio(APIView):
     def put(self, request):
         modified_charecters = request.data["charecters"]
         new_origin_script = ""
+
+        # 수정된 원본 스크립트 생성
         for charecter in modified_charecters:
             """charecters syntex
             {
@@ -435,17 +438,40 @@ class UploadAudio(APIView):
                 "end_time": "0.37",
                 "alternatives": [
                     {
-                        "confidence": "0.5994",
-                        "content": "결과"
+                        "confidence": [0,1] float,
+                        "content": string
                         }
                     ],
-                "type": "pronunciation"
+                "type": "pronunciation" | "punctuation"
             }
             """
-            charecter
+            if charecter["type"] == "pronunciation":
+                new_origin_script += " "
+            new_origin_script += charecter["alternatives"][0]["content"]
 
-        """
-        1. 수정된 원본 스크립트 받기
-        2. GPT에게 답 받기
-        3. 수정된 사항 저장, 토큰 저장
-        """
+        new_modified_script = self.get_gpt_script(new_origin_script)
+        serializer = serializers.AudioSerializer(
+            # Audio.objects.get(user=request.user),
+            Audio.objects.get(pk=request.data["pk"]),
+            data={
+                "origin_script": new_origin_script,
+                "modified_script": new_modified_script,
+            },
+            partial=True,
+        )
+        print(f"new_origin_script:{new_origin_script}")
+        print(f"new_modified_script:{new_modified_script}")
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "origin_script": new_origin_script,
+                    "modified_script": new_modified_script,
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
