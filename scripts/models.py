@@ -18,7 +18,9 @@ class Audio(models.Model):
         ],
         null=True,
     )
-    title = models.CharField(max_length=50)
+    title = models.CharField(
+        max_length=50,
+    )
     origin_script = models.TextField(
         null=True,
     )

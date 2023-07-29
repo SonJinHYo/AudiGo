@@ -59,21 +59,7 @@ class UploadAudio(APIView):
     openai.api_key = env("TEST_KEY")
 
     def post(self, request):
-        # 이후 오디오 파일 크기 제한 걸기
-        user = request.user
-        audio_file = request.FILES.get("audio_file")
-        # title = request.data["title"]
-        bucket = self.env("BUCKET")
-        key = f"{str(uuid.uuid4())}__{audio_file}"
-        job_name = bucket + key
-
-        self.s3.upload_file(
-            Filename="test",
-            Bucket=bucket,
-            Key=key,
-        )
-
-        def get_script(job_name: str) -> tuple(str, dict):
+        def wait_for_transcription(job_name: str) -> tuple(str, dict):
             # transcript 작업 완료 대기
             max_tries = 60
             while max_tries > 0:
@@ -245,25 +231,53 @@ class UploadAudio(APIView):
             )
             return completion
 
-        origin_script, items = get_script(job_name=job_name)
+        user = request.user
+        file = request.FILES.get("file")
+        title = request.data["title"]
+
+        serializer = serializers.AudioFirstSaveSerializer(
+            user=user,
+            file=file,
+            title=title,
+        )
+        if serializer.is_valid():
+            audio = serializer.save()
+        else:
+            return Response(
+                serializer.error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        bucket = self.env("BUCKET")
+        key = f"{str(uuid.uuid4())}__{file}"
+        job_name = bucket + key
+
+        self.s3.upload_file(
+            Filename=audio.file.url(),
+            Bucket=bucket,
+            Key=key,
+        )
+
+        origin_script, charecters = wait_for_transcription(job_name=job_name)
         modified_script = get_gpt_script(script_text=origin_script)
 
-        data = {
-            "origin_script": origin_script,
-            "modified_script": modified_script,
-            "charecters": items,
-        }
+        audio.origin_script = origin_script
+        audio.modified_script = modified_script
 
-        return Response(data, status=status.HTTP_200_OK)
-
-        """
-        1. 오디오 파일 어플리케이션 컨테이너에 전송
-            - 앱 컨테이너 (aws transcript, chatGPT)
-        2. 데이터 전송
-            - 이 때 원본과 gpt스크립트, gpt 토큰 저장
-            - 단어별 타임스크립트는 저장x 전송만
-        3. 데이터 전송
-        """
+        if audio.full_clean():
+            audio.save()
+            return Response(
+                {
+                    "origin_script": origin_script,
+                    "modified_script": modified_script,
+                    "charecters": charecters,
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                "스크립트 생성에 실패했습니다.", status=status.HTTP_417_EXPECTATION_FAILED
+            )
 
     def put(self, request, pk):
         """
