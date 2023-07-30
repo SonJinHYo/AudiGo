@@ -8,6 +8,9 @@ class User(AbstractUser):
         max_length=30,
         unique=True,
     )
+    email = models.EmailField(
+        unique=True,
+    )
     created_at = models.DateTimeField(
         null=True,
     )
