@@ -11,7 +11,7 @@ class UserSerializer(ModelSerializer):
         model = User
         fields = (
             "username",
-            "created_at",
+            "email",
             "using_gpt_token",
             "rem_gpt_token",
             "audios",

@@ -17,6 +17,31 @@ class Me(APIView):
 
     def get(self, request):
         user = request.user
+        # serializer = serializers.PrivateUserSerializer(user)
+        # return Response(serializer.data)
+        return Response({})
+
+    def put(self, request):
+        # user = request.user
+        # serializer = serializers.PrivateUserSerializer(
+        #     user,
+        #     data=request.data,
+        #     partial=True,
+        # )
+        # if serializer.is_valid():
+        #     user = serializer.save()
+        #     serializer = serializers.PrivateUserSerializer(user)
+        #     return Response(serializer.data)
+        # else:
+        #     return Response(serializer.errors)
+        return Response()
+
+
+class MyScript(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
         serializer = serializers.UserSerializer(user)
         return Response(serializer.data)
 
@@ -82,10 +107,9 @@ class KakaoLogIn(APIView):
                 return Response(status=status.HTTP_200_OK)
             except User.DoesNotExist:
                 email = kakao_account.get("email")
-                username = email[: email.find("@")]
                 user = User.objects.create(
                     email=email,
-                    username=username,
+                    username=email,
                 )
 
                 user.set_unusable_password()

@@ -40,7 +40,8 @@ class Scripts(APIView):
 
 # 내일 django 정적 파일 저장소 설정부터 시작하기
 class UploadAudio(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     def get_gpt_script(self, script_text: str) -> list:
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -258,9 +259,78 @@ class UploadAudio(APIView):
             return (script_text, script_items)
 
         # user = User.objects.get(username=request.user)
-        user = User.objects.get(username="admin")
-        file = request.data.get("file")
-        title = request.data["title"]
+        try:
+            user = User.objects.get(username=request.user)
+            file = request.data.get("file")
+            title = request.data["title"]
+
+            test_data = {
+                "origin_script": "결과 또한 빠르게 나오게 됩니다. 최종적으로 세이브것들을 통해서 저희가 이미지를 조정할 수 있게 됩니다.",
+                "modified_script": "이미지 조정을 위해 세이브한 결과는 빠르게 나오게 됩니다. 세이브한 것들을 통해 우리는 이미지를 최종적으로 조정할 수 있습니다.",
+                "charecters": [
+                    {
+                        "start_time": "0.0",
+                        "end_time": "0.37",
+                        "alternatives": [{"confidence": "0.5994", "content": "결과"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "0.37",
+                        "end_time": "0.68",
+                        "alternatives": [{"confidence": "1.0", "content": "또한"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "0.85",
+                        "end_time": "1.19",
+                        "alternatives": [{"confidence": "1.0", "content": "빠르게"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "1.19",
+                        "end_time": "1.41",
+                        "alternatives": [{"confidence": "0.9979", "content": "나오게"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "1.41",
+                        "end_time": "1.71",
+                        "alternatives": [{"confidence": "0.9814", "content": "됩니다"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "alternatives": [{"confidence": "0.0", "content": "."}],
+                        "type": "punctuation",
+                    },
+                    {
+                        "start_time": "3.42",
+                        "end_time": "4.03",
+                        "alternatives": [{"confidence": "0.9999", "content": "최종적으로"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "6.35",
+                        "end_time": "6.53",
+                        "alternatives": [{"confidence": "0.9935", "content": "있게"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "6.53",
+                        "end_time": "6.9",
+                        "alternatives": [{"confidence": "0.9996", "content": "됩니다"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "alternatives": [{"confidence": "0.0", "content": "."}],
+                        "type": "punctuation",
+                    },
+                ],
+            }
+            return Response(test_data, status=status.HTTP_200_OK)
+        except:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+        # 프론트엔드 연결 테스트
 
         serializer = serializers.AudioFirstSaveSerializer(
             data={
@@ -420,10 +490,13 @@ class UploadAudio(APIView):
             """
             return Response(
                 {
-                    "origin_script": origin_script,
-                    "modified_script": modified_script,
-                    "charecters": charecters,
-                    "pk": new_audio.pk,
+                    "result": {
+                        "origin_script": origin_script,
+                        "modified_script": modified_script,
+                        "charecters": charecters,
+                        "audio_pk": new_audio.pk,
+                        "audio_pk": "s3_audio_src",
+                    }
                 },
                 status=status.HTTP_200_OK,
             )
@@ -434,9 +507,10 @@ class UploadAudio(APIView):
             )
 
     def put(self, request):
+        print(request.data)
         modified_charecters = request.data["charecters"]
         new_origin_script = ""
-
+        return Response({}, status=status.HTTP_200_OK)
         # 수정된 원본 스크립트 생성
         for charecter in modified_charecters:
             """charecters syntex
