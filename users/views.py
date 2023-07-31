@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError, NotFound
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
+from scripts.models import Audio
+
 from . import serializers
 from .models import User
 
@@ -40,10 +42,21 @@ class Me(APIView):
 class MyScript(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_object(self, pk):
+        try:
+            return Audio.objects.get(pk=pk)
+        except Audio.DoesNotExist:
+            raise NotFound
+
     def get(self, request):
         user = request.user
         serializer = serializers.UserSerializer(user)
         return Response(serializer.data)
+
+    def delete(self, request, pk):
+        audio = self.get_object(pk=pk)
+        audio.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LogIn(APIView):
