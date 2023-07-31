@@ -5,14 +5,14 @@ from .models import Audio
 class TinyAudioSerializer(ModelSerializer):
     class Meta:
         model = Audio
-        fields = ("title",)
+        fields = ("script_title",)
 
 
 class DetailAudioSerializer(ModelSerializer):
     class Meta:
         model = Audio
         fields = (
-            "title",
+            "script_title",
             "origin_script",
             "modified_script",
         )
@@ -24,7 +24,7 @@ class AudioFirstSaveSerializer(ModelSerializer):
         fields = (
             "user",
             "file",
-            "title",
+            "script_title",
         )
 
 
@@ -34,7 +34,7 @@ class AudioSerializer(ModelSerializer):
         fields = (
             "user",
             "file",
-            "title",
+            "script_title",
             "origin_script",
             "modified_script",
         )

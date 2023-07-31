@@ -7,5 +7,5 @@ class UserAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "file",
-        "title",
+        "script_title",
     )

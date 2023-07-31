@@ -509,9 +509,12 @@ class UploadAudio(APIView):
     def put(self, request):
         print(request.data)
         modified_charecters = request.data["charecters"]
+        modified_charecters = json.loads(modified_charecters)
+        print(modified_charecters)
         new_origin_script = ""
-        return Response({}, status=status.HTTP_200_OK)
         # 수정된 원본 스크립트 생성
+        print("단어 조합 시작")
+        print(modified_charecters[0])
         for charecter in modified_charecters:
             """charecters syntex
             {
@@ -529,6 +532,8 @@ class UploadAudio(APIView):
             if charecter["type"] == "pronunciation":
                 new_origin_script += " "
             new_origin_script += charecter["alternatives"][0]["content"]
+        print("단어 조합 끝")
+        return Response({"finalScript": new_origin_script}, status=status.HTTP_200_OK)
 
         new_modified_script, using_token = self.get_gpt_script(new_origin_script)
 

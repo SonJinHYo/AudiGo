@@ -25,7 +25,7 @@ class Audio(models.Model):
         null=True,
         upload_to=custom_upload_to,
     )
-    title = models.CharField(
+    script_title = models.CharField(
         max_length=50,
     )
     origin_script = models.TextField(

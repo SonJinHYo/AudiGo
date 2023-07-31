@@ -1,11 +1,11 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from .models import User
 from scripts.models import Audio
-from scripts.serializers import TinyAudioSerializer
+from scripts.serializers import TinyAudioSerializer, DetailAudioSerializer
 
 
 class UserSerializer(ModelSerializer):
-    audios = SerializerMethodField()
+    audios = DetailAudioSerializer(many=True)
 
     class Meta:
         model = User
@@ -17,8 +17,8 @@ class UserSerializer(ModelSerializer):
             "audios",
         )
 
-    def get_audios(self, user):
-        return TinyAudioSerializer(
-            Audio.objects.filter(user=user),
-            many=True,
-        ).data
+    # def get_audios(self, user):
+    #     return TinyAudioSerializer(
+    #         Audio.objects.filter(user=user),
+    #         many=True,
+    #     ).data
