@@ -1,4 +1,5 @@
 import time
+import uuid
 from django.contrib.auth import authenticate, login, logout, get_user
 
 from rest_framework.response import Response
@@ -125,7 +126,7 @@ class KakaoLogIn(APIView):
                 email = kakao_account.get("email")
                 user = User.objects.create(
                     email=email,
-                    username=email,
+                    username=str(uuid.uuid1()),
                 )
 
                 user.set_unusable_password()
