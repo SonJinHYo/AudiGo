@@ -92,7 +92,9 @@ class LogOut(APIView):
 class KakaoLogIn(APIView):
     def post(self, request):
         try:
+            print(1)
             code = request.data.get("code")
+            print(code)
 
             access_token = requests.post(
                 "https://kauth.kakao.com/oauth/token",
@@ -104,7 +106,10 @@ class KakaoLogIn(APIView):
                     "code": code,
                 },
             )
+            print(2)
             access_token = access_token.json().get("access_token")
+            print(3)
+
             user_data = requests.get(
                 "https://kapi.kakao.com/v2/user/me",
                 headers={
@@ -112,25 +117,41 @@ class KakaoLogIn(APIView):
                     "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
                 },
             )
+            print(4)
 
             user_data = user_data.json()
+            print(5)
+
             kakao_account = user_data["kakao_account"]
+            print(6)
 
             try:
+                print(7)
+
                 user = User.objects.get(email=kakao_account.get("email"))
+                print(8)
 
                 login(request, user)
+                print(9)
 
                 return Response(status=status.HTTP_200_OK)
             except User.DoesNotExist:
+                print(10)
+
                 email = kakao_account.get("email")
+                print(11)
+
                 user = User.objects.create(
                     email=email,
-                    username=str(uuid.uuid1()),
+                    username=str(uuid.uuid1())[:30],
                 )
+                print(12)
 
                 user.set_unusable_password()
+                print(13)
+
                 user.save()
+                print(14)
 
                 login(request, user)
                 return Response(status=status.HTTP_200_OK)

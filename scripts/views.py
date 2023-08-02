@@ -48,7 +48,7 @@ class UploadAudio(APIView):
             messages=[
                 {
                     "role": "system",
-                    "content": "Your role only organizes the input. And only answer in Korean",
+                    "content": "You're role is get the script and organize it. But Don't censor. and Answer in Korean.",
                 },
                 {"role": "user", "content": script_text},
             ],
