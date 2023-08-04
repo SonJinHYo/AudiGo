@@ -15,6 +15,7 @@ class DetailAudioSerializer(ModelSerializer):
             "script_title",
             "origin_script",
             "modified_script",
+            "summary_script",
         )
 
 
@@ -37,4 +38,5 @@ class AudioSerializer(ModelSerializer):
             "script_title",
             "origin_script",
             "modified_script",
+            "summary_script",
         )

@@ -34,7 +34,9 @@ class Audio(models.Model):
     modified_script = models.TextField(
         default="",
     )
-    summary_script = models.TextField(default="")
+    summary_script = models.TextField(
+        default="",
+    )
 
 
 class Charecter(models.Model):

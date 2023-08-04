@@ -573,7 +573,7 @@ class UploadAudio(APIView):
 
         summary_script, using_token2 = self.get_gpt_script(
             script_text=new_origin_script,
-            system_role="Get the point of the content, summarize the content",
+            system_role="Get the point of the content, summarize the content. Deliver only the summarized content.",
         )
 
         # 사용한 토큰 저장
