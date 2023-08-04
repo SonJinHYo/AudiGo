@@ -85,6 +85,16 @@ class UploadAudio(APIView):
             completion["usage"]["completion_tokens"],
         )
 
+    def separate_line(self, script_text: str) -> str:
+        """스크립트 문장 단위로 줄 나눠주기"""
+        new_script_text = ""
+        for char in script_text:
+            new_script_text += char
+            if char in (".", "?", "!"):
+                new_script_text += "\n"
+
+        return new_script_text
+
     env = environ.Env()
     environ.Env.read_env(os.path.join(settings.BASE_DIR, ".env"))
 
@@ -375,6 +385,10 @@ class UploadAudio(APIView):
         print("save using token...")
         user.save()
 
+        # 저장 전 문장 나누기
+        origin_script = self.separate_line(origin_script)
+        modified_script = self.separate_line(modified_script)
+
         audio.origin_script = origin_script
         audio.modified_script = modified_script
 
@@ -559,7 +573,7 @@ class UploadAudio(APIView):
 
         summary_script, using_token2 = self.get_gpt_script(
             script_text=new_origin_script,
-            system_role="Get the point of the content and summarize the content",
+            system_role="Get the point of the content, summarize the content",
         )
 
         # 사용한 토큰 저장
@@ -567,6 +581,10 @@ class UploadAudio(APIView):
         # user = User.objects.get(username="admin")
         user.using_gpt_token += using_token1 + using_token2
         user.save()
+
+        # 저장 전 문장 나누기
+        new_modified_script = self.separate_line(new_modified_script)
+        summary_script = self.separate_line(summary_script)
 
         serializer = serializers.AudioSerializer(
             # Audio.objects.get(user=request.user),
@@ -580,15 +598,10 @@ class UploadAudio(APIView):
         )
         print(f"new_origin_script:{new_origin_script}")
         print(f"new_modified_script:{new_modified_script}")
-        print(f"new_modified_script:{summary_script}")
+        print(f"summary_script:{summary_script}")
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {
-                    "origin_script": new_origin_script,
-                    "modified_script": new_modified_script,
-                    "summary_script": summary_script,
-                },
                 status=status.HTTP_200_OK,
             )
         else:
