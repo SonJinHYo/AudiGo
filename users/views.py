@@ -102,7 +102,7 @@ class KakaoLogIn(APIView):
                 data={
                     "grant_type": "authorization_code",
                     "client_id": "feebe719164baaa0ad0a53aa57e29846",
-                    "redirect_uri": "http://127.0.0.1:3000/social/kakao",
+                    "redirect_uri": "http://ecs-lb-1023174556.ap-northeast-2.elb.amazonaws.com/social/kakao",
                     "code": code,
                 },
             )

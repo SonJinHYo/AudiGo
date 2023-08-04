@@ -44,7 +44,7 @@ class UploadAudio(APIView):
 
     def get_gpt_script(self, script_text: str) -> list:
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-16k",
             messages=[
                 {
                     "role": "system",
@@ -218,8 +218,10 @@ class UploadAudio(APIView):
             script_uri = response["TranscriptionJob"]["Transcript"]["TranscriptFileUri"]
             # 스크립트 json 파일
             script_response = requests.get(script_uri)
+            print("get script")
             # 스크립트 내용
             script_data = json.loads(script_response.text)
+            print("get script test")
             """ script syntex
             {
                 "jobName": "7035cb7c-b215-4207-a2de-8a2b08a4fb9b",
@@ -258,87 +260,84 @@ class UploadAudio(APIView):
             script_items = script_data["results"]["items"]
             return (script_text, script_items)
 
-        # try:
-        #     user = User.objects.get(username=request.user)
-        #     file = request.data.get("file")
-        #     title = request.data["title"]
+        """ test data
+        try:
+            user = User.objects.get(username=request.user)
+            file = request.data.get("file")
+            title = request.data["title"]
 
-        #     test_data = {
-        #         "origin_script": "결과 또한 빠르게 나오게 됩니다. 최종적으로 세이브것들을 통해서 저희가 이미지를 조정할 수 있게 됩니다.",
-        #         "modified_script": "이미지 조정을 위해 세이브한 결과는 빠르게 나오게 됩니다. 세이브한 것들을 통해 우리는 이미지를 최종적으로 조정할 수 있습니다.",
-        #         "charecters": [
-        #             {
-        #                 "start_time": "0.0",
-        #                 "end_time": "0.37",
-        #                 "alternatives": [{"confidence": "0.5994", "content": "결과"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "start_time": "0.37",
-        #                 "end_time": "0.68",
-        #                 "alternatives": [{"confidence": "1.0", "content": "또한"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "start_time": "0.85",
-        #                 "end_time": "1.19",
-        #                 "alternatives": [{"confidence": "1.0", "content": "빠르게"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "start_time": "1.19",
-        #                 "end_time": "1.41",
-        #                 "alternatives": [{"confidence": "0.9979", "content": "나오게"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "start_time": "1.41",
-        #                 "end_time": "1.71",
-        #                 "alternatives": [{"confidence": "0.9814", "content": "됩니다"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "alternatives": [{"confidence": "0.0", "content": "."}],
-        #                 "type": "punctuation",
-        #             },
-        #             {
-        #                 "start_time": "3.42",
-        #                 "end_time": "4.03",
-        #                 "alternatives": [{"confidence": "0.9999", "content": "최종적으로"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "start_time": "6.35",
-        #                 "end_time": "6.53",
-        #                 "alternatives": [{"confidence": "0.9935", "content": "있게"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "start_time": "6.53",
-        #                 "end_time": "6.9",
-        #                 "alternatives": [{"confidence": "0.9996", "content": "됩니다"}],
-        #                 "type": "pronunciation",
-        #             },
-        #             {
-        #                 "alternatives": [{"confidence": "0.0", "content": "."}],
-        #                 "type": "punctuation",
-        #             },
-        #         ],
-        #     }
-        #     return Response(test_data, status=status.HTTP_200_OK)
-        # except:
-        #     return Response({}, status=status.HTTP_404_NOT_FOUND)
-        print(1)
+            test_data = {
+                "origin_script": "결과 또한 빠르게 나오게 됩니다. 최종적으로 세이브것들을 통해서 저희가 이미지를 조정할 수 있게 됩니다.",
+                "modified_script": "이미지 조정을 위해 세이브한 결과는 빠르게 나오게 됩니다. 세이브한 것들을 통해 우리는 이미지를 최종적으로 조정할 수 있습니다.",
+                "charecters": [
+                    {
+                        "start_time": "0.0",
+                        "end_time": "0.37",
+                        "alternatives": [{"confidence": "0.5994", "content": "결과"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "0.37",
+                        "end_time": "0.68",
+                        "alternatives": [{"confidence": "1.0", "content": "또한"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "0.85",
+                        "end_time": "1.19",
+                        "alternatives": [{"confidence": "1.0", "content": "빠르게"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "1.19",
+                        "end_time": "1.41",
+                        "alternatives": [{"confidence": "0.9979", "content": "나오게"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "1.41",
+                        "end_time": "1.71",
+                        "alternatives": [{"confidence": "0.9814", "content": "됩니다"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "alternatives": [{"confidence": "0.0", "content": "."}],
+                        "type": "punctuation",
+                    },
+                    {
+                        "start_time": "3.42",
+                        "end_time": "4.03",
+                        "alternatives": [{"confidence": "0.9999", "content": "최종적으로"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "6.35",
+                        "end_time": "6.53",
+                        "alternatives": [{"confidence": "0.9935", "content": "있게"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "start_time": "6.53",
+                        "end_time": "6.9",
+                        "alternatives": [{"confidence": "0.9996", "content": "됩니다"}],
+                        "type": "pronunciation",
+                    },
+                    {
+                        "alternatives": [{"confidence": "0.0", "content": "."}],
+                        "type": "punctuation",
+                    },
+                ],
+            }
+            return Response(test_data, status=status.HTTP_200_OK)
+        except:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+        """
+
         user = User.objects.get(username=request.user)
         file = request.data.get("file")
         title = request.data["title"]
-        print(user)
-        print(file)
-        print(title)
-        print(2)
 
         # 프론트엔드 연결 테스트
-        print(3)
 
         serializer = serializers.AudioFirstSaveSerializer(
             data={
@@ -347,7 +346,6 @@ class UploadAudio(APIView):
                 "script_title": title,
             },
         )
-        print(4)
 
         if serializer.is_valid():
             audio = serializer.save()
@@ -356,20 +354,25 @@ class UploadAudio(APIView):
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        print(5)
+
         job_name = audio.file.name
         print("wait 3 second...")
         time.sleep(3)
 
         origin_script, charecters = wait_for_transcription(job_name=job_name)
+        print("create gpt script...")
         modified_script, using_token = self.get_gpt_script(script_text=origin_script)
 
         # 사용한 토큰 저장
         user.using_gpt_token += using_token
+
+        print("save using token...")
         user.save()
 
         audio.origin_script = origin_script
         audio.modified_script = modified_script
+
+        print("save user scripts data...")
 
         serializer = serializers.AudioSerializer(
             audio,
