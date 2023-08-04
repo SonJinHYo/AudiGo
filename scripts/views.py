@@ -376,7 +376,7 @@ class UploadAudio(APIView):
         print("create gpt script...")
         modified_script, using_token = self.get_gpt_script(
             script_text=origin_script,
-            system_role="Correct typos, organize sentences",
+            system_role=" You receive the script through speech recognition, then find the wrong word and correct it correctly.",
         )
 
         # 사용한 토큰 저장
@@ -568,12 +568,13 @@ class UploadAudio(APIView):
 
         new_modified_script, using_token1 = self.get_gpt_script(
             script_text=new_origin_script,
-            system_role="Correct typos, organize sentences",
+            # system_role="Correct typos, organize sentences",
+            system_role="You receive the script through speech recognition, then find the wrong word and correct it correctly.",
         )
 
         summary_script, using_token2 = self.get_gpt_script(
             script_text=new_origin_script,
-            system_role="Get the point of the content, summarize the content. Deliver only the summarized content.",
+            system_role="You receive other people's lecture scripts, and you only identify the information that you convey in the content and deliver it in a structured format. To Korean",
         )
 
         # 사용한 토큰 저장
@@ -583,6 +584,7 @@ class UploadAudio(APIView):
         user.save()
 
         # 저장 전 문장 나누기
+        new_origin_script = self.separate_line(new_origin_script)
         new_modified_script = self.separate_line(new_modified_script)
         summary_script = self.separate_line(summary_script)
 
