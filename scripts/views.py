@@ -42,15 +42,18 @@ class Scripts(APIView):
 class UploadAudio(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_gpt_script(self, script_text: str) -> list:
+    def get_gpt_script(self, script_text: str, system_role: str) -> list:
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             messages=[
                 {
                     "role": "system",
-                    "content": "Correct typos, organize sentences",
+                    "content": system_role,
                 },
-                {"role": "user", "content": script_text},
+                {
+                    "role": "user",
+                    "content": script_text,
+                },
             ],
         )
         """ cimpletion syntax
@@ -361,7 +364,10 @@ class UploadAudio(APIView):
 
         origin_script, charecters = wait_for_transcription(job_name=job_name)
         print("create gpt script...")
-        modified_script, using_token = self.get_gpt_script(script_text=origin_script)
+        modified_script, using_token = self.get_gpt_script(
+            script_text=origin_script,
+            system_role="Correct typos, organize sentences",
+        )
 
         # 사용한 토큰 저장
         user.using_gpt_token += using_token
@@ -546,12 +552,20 @@ class UploadAudio(APIView):
         print("단어 조합 끝")
         # return Response({"finalScript": new_origin_script}, status=status.HTTP_200_OK)
 
-        new_modified_script, using_token = self.get_gpt_script(new_origin_script)
+        new_modified_script, using_token1 = self.get_gpt_script(
+            script_text=new_origin_script,
+            system_role="Correct typos, organize sentences",
+        )
+
+        summary_script, using_token2 = self.get_gpt_script(
+            script_text=new_origin_script,
+            system_role="Get the point of the content and summarize the content",
+        )
 
         # 사용한 토큰 저장
         user = User.objects.get(username=request.user)
         # user = User.objects.get(username="admin")
-        user.using_gpt_token += using_token
+        user.using_gpt_token += using_token1 + using_token2
         user.save()
 
         serializer = serializers.AudioSerializer(
@@ -560,17 +574,20 @@ class UploadAudio(APIView):
             data={
                 "origin_script": new_origin_script,
                 "modified_script": new_modified_script,
+                "summary_script": summary_script,
             },
             partial=True,
         )
         print(f"new_origin_script:{new_origin_script}")
         print(f"new_modified_script:{new_modified_script}")
+        print(f"new_modified_script:{summary_script}")
         if serializer.is_valid():
             serializer.save()
             return Response(
                 {
                     "origin_script": new_origin_script,
                     "modified_script": new_modified_script,
+                    "summary_script": summary_script,
                 },
                 status=status.HTTP_200_OK,
             )

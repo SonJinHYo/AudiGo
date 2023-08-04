@@ -27,7 +27,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1",
     "http://localhost:3000",
     "http://localhost:80",
-    "ecs-lb-1023174556.ap-northeast-2.elb.amazonaws.com",
+    "http://ecs-lb-1023174556.ap-northeast-2.elb.amazonaws.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -37,5 +37,5 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1",
     "http://localhost:3000",
     "http://localhost:80",
-    "ecs-lb-1023174556.ap-northeast-2.elb.amazonaws.com",
+    "http://ecs-lb-1023174556.ap-northeast-2.elb.amazonaws.com",
 ]
