@@ -376,7 +376,7 @@ class UploadAudio(APIView):
         print("create gpt script...")
         modified_script, using_token = self.get_gpt_script(
             script_text=origin_script,
-            system_role=" You receive the script through speech recognition, then find the wrong word and correct it correctly.",
+            system_role="I want you to act the role of spelling correction and improvement. I will speak to you in Korean and you will answer in Korean, the revised and improved version of my text. I want you to replace my simplified A0 level words and sentences with higher level words and sentences more logically. Keep the meaning intact, but make a more accurate sentence. I want you to answer only the corrections and improvements and write the description without writing anything else.",
         )
 
         # 사용한 토큰 저장
@@ -385,15 +385,14 @@ class UploadAudio(APIView):
         print("save using token...")
         user.save()
 
+        audio.origin_script = origin_script
+        audio.modified_script = modified_script
+
         # 저장 전 문장 나누기
         origin_script = self.separate_line(origin_script)
         modified_script = self.separate_line(modified_script)
 
-        audio.origin_script = origin_script
-        audio.modified_script = modified_script
-
         print("save user scripts data...")
-
         serializer = serializers.AudioSerializer(
             audio,
             data={"origin_script": origin_script, "modified_script": modified_script},
@@ -569,12 +568,12 @@ class UploadAudio(APIView):
         new_modified_script, using_token1 = self.get_gpt_script(
             script_text=new_origin_script,
             # system_role="Correct typos, organize sentences",
-            system_role="You receive the script through speech recognition, then find the wrong word and correct it correctly.",
+            system_role="I want you to act the role of spelling correction and improvement. I will speak to you in Korean and you will answer in Korean, the revised and improved version of my text. I want you to replace my simplified A0 level words and sentences with higher level words and sentences more logically. Keep the meaning intact, but make a more accurate sentence. I want you to answer only the corrections and improvements and write the description without writing anything else.",
         )
 
         summary_script, using_token2 = self.get_gpt_script(
             script_text=new_origin_script,
-            system_role="You receive other people's lecture scripts, and you only identify the information that you convey in the content and deliver it in a structured format. To Korean",
+            system_role="I want you to act to extract information from a script taught by a professor to a college student. I will speak to you in Korean and you will answer in Korean. Difficult words at the university level require supplementary explanations. I want you to answer only the extraction of information and organize the extracted information into a topic-content structure instead of writing anything else. I want you to only reply nothing else, do not write explanations.",
         )
 
         # 사용한 토큰 저장
